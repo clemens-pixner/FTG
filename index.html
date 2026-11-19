@@ -191,7 +191,7 @@ nav{position:relative}
       </div>
       <div class="ctas">
         <a class="btn solid" data-link="buy" href="#">Buy $FTG</a>
-        <a class="btn" data-link="community" href="#">Join the gang</a>
+        
       </div>
     </div>
   </div>
@@ -216,7 +216,7 @@ nav{position:relative}
     <div class="chart">
       <div class="chart-top"><span>$FTG / SOL</span><span class="tf" aria-hidden="true"><span>1H</span><span>4H</span><span>1D</span></span><span data-bind="pair"></span></div>
       <div class="chart-body" id="chart-body">
-        <div><strong>Chart loads at launch</strong><p>No fake candles here. Set <code>chartUrl</code> or <code>pairAddress</code> in CONFIG and the live DexScreener chart drops into this frame.</p></div>
+        <div><strong>Chart loads at launch</strong><p>No fake candles here. Once the contract address is set, the live DexScreener chart loads into this frame automatically.</p></div>
       </div>
     </div>
   </div>
@@ -278,7 +278,7 @@ nav{position:relative}
     <p>Freedom was never given. It was taken.</p>
     <div class="ctas">
       <a class="btn solid" data-link="x" href="#" rel="noopener" target="_blank">X / Twitter</a>
-      <a class="btn" data-link="telegram" href="#" rel="noopener" target="_blank">Telegram</a>
+      
       <a class="btn" data-link="buy" href="#">Buy $FTG</a>
     </div>
   </div>
@@ -290,7 +290,7 @@ nav{position:relative}
     <div class="f-grid">
       <div><a class="logo" href="#top">FTG<b>.</b></a><p style="color:var(--mute);margin:.8rem 0 0;max-width:28ch">No masters. Only money.</p></div>
       <div><h4>Explore</h4><ul><li><a href="#chart">Chart</a></li><li><a href="#story">Story</a></li><li><a href="#tokenomics">Tokenomics</a></li><li><a href="#how">How to buy</a></li></ul></div>
-      <div><h4>Socials</h4><ul><li><a data-link="x" href="#" target="_blank" rel="noopener">X / Twitter</a></li><li><a data-link="telegram" href="#" target="_blank" rel="noopener">Telegram</a></li></ul></div>
+      <div><h4>Socials</h4><ul><li><a data-link="x" href="#" target="_blank" rel="noopener">X / Twitter</a></li></ul></div>
       <div><h4>Contract</h4><div class="f-ca"><code data-bind="contract" style="font:600 .8rem ui-monospace,Menlo,monospace;overflow-wrap:anywhere"></code><button class="copy" data-copy>Copy</button></div></div>
     </div>
     <p class="disc">© <span id="yr"></span> Free The Gang. $FTG is a speculative meme token with no intrinsic value and no guaranteed returns. It is not financial advice and has no affiliation with any film, book or franchise. Never spend what you can’t afford to lose.</p>
@@ -305,14 +305,12 @@ const CONFIG = {
   contract: "9skVKsAESLfm4448uyihTxt7YmThNys1pEj1EqZJpump",            // token contract address
   pairAddress: "",         // DexScreener pair address (used if chartUrl is empty)
   chartUrl: "",            // full embed URL, e.g. https://dexscreener.com/solana/<pair>?embed=1&theme=dark
-  marketCap: "",           // e.g. "$1.2M"  (leave empty = placeholder)
-  price: "",
-  volume24h: "",
-  links: { buy: "https://pump.fun/coin/9skVKsAESLfm4448uyihTxt7YmThNys1pEj1EqZJpump", community: "", x: "https://x.com/freetgng", telegram: "", wallet: "https://phantom.app", dex: "" },
+  // price, market cap, 24h volume and the chart load live from DexScreener using the contract above
+  links: { buy: "https://pump.fun/coin/9skVKsAESLfm4448uyihTxt7YmThNys1pEj1EqZJpump", x: "https://x.com/freetgng", wallet: "https://phantom.app", dex: "" },
   tokenomics: {
     totalSupply: "1,000,000,000",       // e.g. "1,000,000,000"
-    liquidity: "",         // e.g. "Burned" / "Locked 12 months"
-    tax: "",               // e.g. "0%"
+    liquidity: "Pump.fun Bonding Curve",         // e.g. "Burned" / "Locked 12 months"
+    tax: "0% Buy/Sell Tax",               // e.g. "0%"
     allocation: [          // percent numbers, or null for TBA
       { label: "Liquidity", pct: null },
       { label: "Community", pct: null },
@@ -325,7 +323,7 @@ const TBA = "TBA";
 const $$ = s => [...document.querySelectorAll(s)];
 const val = v => v || null;
 const pair = CONFIG.pairAddress ? CONFIG.pairAddress.slice(0,4)+"…"+CONFIG.pairAddress.slice(-4) : TBA;
-const bind = { ticker:CONFIG.ticker, network:CONFIG.network, contract:CONFIG.contract, marketCap:CONFIG.marketCap, price:CONFIG.price, volume24h:CONFIG.volume24h, pair };
+const bind = { ticker:CONFIG.ticker, network:CONFIG.network, contract:CONFIG.contract, pair };
 $$("[data-bind]").forEach(el=>{
   const v = val(bind[el.dataset.bind]);
   el.textContent = v || (el.dataset.bind==="contract" ? "Contract address to be announced" : TBA);
@@ -372,6 +370,35 @@ $$("[data-copy]").forEach(b=>b.addEventListener("click",async()=>{
   l.addEventListener("click",e=>{if(e.target.closest("a"))set(false)});
   document.addEventListener("keydown",e=>{if(e.key==="Escape")set(false)});
   matchMedia("(min-width:820px)").addEventListener("change",()=>set(false));
+})();
+/* live market data (DexScreener public API, refreshed every 30s) */
+(function(){
+  if(!CONFIG.contract) return;
+  const usd=n=>n>=1e9?"$"+(n/1e9).toFixed(2)+"B":n>=1e6?"$"+(n/1e6).toFixed(2)+"M":n>=1e3?"$"+(n/1e3).toFixed(1)+"K":"$"+n.toFixed(0);
+  const price=p=>{const n=+p;return !n?null:n<0.01?"$"+n.toPrecision(3):"$"+n.toFixed(4)};
+  const set=(k,v)=>{if(v==null)return;$$('[data-bind="'+k+'"]').forEach(e=>{e.textContent=v;e.classList.remove("tbd")})};
+  async function load(){
+    try{
+      const r=await fetch("https://api.dexscreener.com/latest/dex/tokens/"+encodeURIComponent(CONFIG.contract));
+      const j=await r.json();
+      const p=(j.pairs||[]).filter(x=>x.chainId==="solana").sort((a,b)=>((b.liquidity&&b.liquidity.usd)||0)-((a.liquidity&&a.liquidity.usd)||0))[0];
+      if(!p) return;
+      set("price",price(p.priceUsd));
+      const mc=p.marketCap||p.fdv; if(mc) set("marketCap",usd(mc));
+      if(p.volume&&p.volume.h24!=null) set("volume24h",usd(+p.volume.h24));
+      if(p.pairAddress){
+        set("pair",p.pairAddress.slice(0,4)+"…"+p.pairAddress.slice(-4));
+        const body=document.getElementById("chart-body");
+        if(!body.querySelector("iframe")){
+          body.className="chart-body live"; body.innerHTML="";
+          const f=document.createElement("iframe");
+          f.src=CONFIG.chartUrl||"https://dexscreener.com/solana/"+p.pairAddress+"?embed=1&theme=dark&trades=0&info=0";
+          f.title="$FTG live chart"; f.loading="lazy"; body.appendChild(f);
+        }
+      }
+    }catch(e){/* keep placeholders if the API is unreachable */}
+  }
+  load(); setInterval(load,30000);
 })();
 document.getElementById("yr").textContent = new Date().getFullYear();
 </script>
