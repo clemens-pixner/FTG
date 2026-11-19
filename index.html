@@ -303,18 +303,18 @@ const CONFIG = {
   ticker: "$FTG",
   network: "Solana",
   contract: "9skVKsAESLfm4448uyihTxt7YmThNys1pEj1EqZJpump",            // token contract address
-  pairAddress: "",         // DexScreener pair address (used if chartUrl is empty)
-  chartUrl: "",            // full embed URL, e.g. https://dexscreener.com/solana/<pair>?embed=1&theme=dark
+  pairAddress: "DnsTEkyVQjcxzdrwoFdLhJiT8SN6v9kd9tZHWVfhfwBq",         // DexScreener pair address (used if chartUrl is empty)
+  chartUrl: "https://dexscreener.com/solana/DnsTEkyVQjcxzdrwoFdLhJiT8SN6v9kd9tZHWVfhfwBq?embed=1&theme=dark",            // full embed URL, e.g. https://dexscreener.com/solana/<pair>?embed=1&theme=dark
   // price, market cap, 24h volume and the chart load live from DexScreener using the contract above
-  links: { buy: "https://pump.fun/coin/9skVKsAESLfm4448uyihTxt7YmThNys1pEj1EqZJpump", x: "https://x.com/freetgng", wallet: "https://phantom.app", dex: "" },
+  links: { buy: "https://pump.fun/coin/9skVKsAESLfm4448uyihTxt7YmThNys1pEj1EqZJpump", x: "https://x.com/freetgng", wallet: "https://phantom.app", dex: "https://dexscreener.com/solana/dnstekyvqjcxzdrwofdlhjit8sn6v9kd9tzhwvfhfwbq" },
   tokenomics: {
     totalSupply: "1,000,000,000",       // e.g. "1,000,000,000"
     liquidity: "Pump.fun Bonding Curve",         // e.g. "Burned" / "Locked 12 months"
     tax: "0% Buy/Sell Tax",               // e.g. "0%"
     allocation: [          // percent numbers, or null for TBA
-      { label: "Liquidity", pct: null },
-      { label: "Community", pct: null },
-      { label: "Team / Marketing", pct: null }
+      { label: "Liquidity", pct: 20.69 },
+      { label: "Community", pct: 79.31 },
+      { label: "Team / Marketing", pct: 0 }
     ]
   }
 };
